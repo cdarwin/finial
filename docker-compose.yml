@@ -1,0 +1,26 @@
+registry-data:
+  dvc: True
+  image: &registry_image 'library/registry:0.9.1'
+  container_name: &dvc 'registry-999-99-data'
+  command: 'echo "registry data volume container"'
+  volumes:
+    - &datapath '/registry'
+registry-service:
+  image: *registry_image
+  container_name: 'registry-999-99-service'
+  restart: 'always'
+  volumes_from:
+    - *dvc
+  environment:
+    SETTINGS_FLAVOR: 'local'
+    STORAGE_PATH: *datapath
+    SEARCH_BACKEND: 'sqlalchemy'
+nginx-service:
+  image: 'library/nginx:1.9.0'
+  container_name: 'nginx-999-99'
+  restart: 'always'
+  links:
+    - 'registry-999-99-service:registry'
+  ports:
+    - '80:80'
+    - '443:443'
